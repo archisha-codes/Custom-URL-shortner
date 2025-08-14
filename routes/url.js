@@ -4,49 +4,68 @@ const URL = require("../models/url");
 
 const router = express.Router();
 
-// Optional mapping for short names
 const nameToUrlMap = {
-  linkedin: "https://www.linkedin.com/in/archisha-ranjan-945315287/",
-  github: "https://github.com/",
-  google: "https://www.google.com/"
+  linkedin: "https://www.linkedin.com",
+  github: "https://github.com",
+  google: "https://www.google.com"
 };
 
-// POST /url
 router.post("/", async (req, res) => {
   try {
     const body = req.body;
-
-    // Accept redirectURL, url, or name
     let finalURL = body.redirectURL || body.url;
+    
     if (!finalURL && body.name) {
       const mapped = nameToUrlMap[body.name.toLowerCase()];
       if (mapped) finalURL = mapped;
     }
 
     if (!finalURL) {
-      return res.status(400).json({ error: "redirectURL is required" });
+      if (req.accepts('html')) {
+        return res.render("home", { 
+          title: "URL Shortener",
+          message: "URL is required",
+          messageType: "error"
+        });
+      }
+      return res.status(400).json({ error: "URL is required" });
     }
 
-    const newUrl = await URL.create({
-      shortId: nanoid(8), // generate unique short id
+    const shortId = nanoid(8);
+
+    await URL.create({
+      shortId,
       redirectURL: finalURL,
       visitHistory: []
     });
 
-    res.json({ id: newUrl.shortId, redirectURL: newUrl.redirectURL });
+    if (req.accepts('html')) {
+      const allUrls = await URL.find({});
+      return res.render("home", { 
+        title: "URL Shortener",
+        id: shortId,
+        urls: allUrls,
+        message: "URL shortened successfully!",
+        messageType: "success"
+      });
+    }
+
+    res.json({ id: shortId, redirectURL: finalURL });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Something went wrong" });
+    res.status(500).render("500", { title: "Server Error" });
   }
 });
 
-// GET /analytics/:shortId
-async function handleGetAnalytics(req, res) {
+router.get("/analytics/:shortId", async (req, res) => {
   try {
     const shortId = req.params.shortId;
     const entry = await URL.findOne({ shortId });
 
     if (!entry) {
+      if (req.accepts('html')) {
+        return res.render("404", { title: "Not Found" });
+      }
       return res.status(404).json({ error: "Short URL not found" });
     }
 
@@ -56,10 +75,8 @@ async function handleGetAnalytics(req, res) {
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Something went wrong" });
+    res.status(500).render("500", { title: "Server Error" });
   }
-}
-
-router.get("/analytics/:shortId", handleGetAnalytics);
+});
 
 module.exports = router;

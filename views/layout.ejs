@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title || 'URL Shortener' %></title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="container">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <a href="/" class="navbar-brand">
+          <i class="fas fa-link"></i>
+          ShortURL
+        </a>
+        <div class="nav-links">
+          <a href="/" class="nav-link">Home</a>
+          <a href="/url" class="nav-link">API</a>
+          <a href="/url/analytics" class="nav-link">Analytics</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="container">
+    <%- body %>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <p>© <%= new Date().getFullYear() %> ShortURL. All rights reserved.</p>
+      <p>Create short, memorable links in seconds.</p>
+      <div class="social-links">
+        <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+        <a href="#" class="social-link"><i class="fab fa-github"></i></a>
+        <a href="#" class="social-link"><i class="fab fa-linkedin"></i></a>
+      </div>
+    </div>
+  </footer>
+
+  <% if (message) { %>
+    <div class="flash-message" id="flashMessage">
+      <%= message %>
+    </div>
+    <script>
+      setTimeout(() => {
+        document.getElementById('flashMessage').classList.add('show');
+      }, 100);
+      setTimeout(() => {
+        document.getElementById('flashMessage').classList.remove('show');
+      }, 3000);
+    </script>
+  <% } %>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const copyButtons = document.querySelectorAll('.url-copy');
+      
+      copyButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          const shortUrl = this.getAttribute('data-url');
+          navigator.clipboard.writeText(shortUrl).then(() => {
+            const originalText = this.innerHTML;
+            this.innerHTML = '<i class="fas fa-check"></i> Copied!';
+            this.style.backgroundColor = '#4CAF50';
+            
+            setTimeout(() => {
+              this.innerHTML = originalText;
+              this.style.backgroundColor = '#4895ef';
+            }, 2000);
+          });
+        });
+      });
+    });
+  </script>
+</body>
+</html>            
