@@ -1,15 +1,31 @@
-const sessionIdToUserMap = new Map();
+const jwt = require("jsonwebtoken");
 
-function setUser(id, user) {
-    sessionIdToUserMap.set(id, user)
+// Secret key (keep this in .env file in real projects)
+const secret = "archi$123@$";
 
+// Create JWT for a user
+function setUser(user) {
+    return jwt.sign(
+        {
+            id: user._id,
+            email: user.email,
+        },
+        secret,
+        { expiresIn: "1h" } // Token expires in 1 hour
+    );
 }
 
-function getUser(id) {
-    return sessionIdToUserMap.get(id);
+// Verify JWT and get user data back
+function getUser(token) {
+    if (!token) return null;
+    try {
+        return jwt.verify(token, secret);
+    } catch (error) {
+        return null; // invalid/expired token
+    }
 }
 
 module.exports = {
-    setUser, 
+    setUser,
     getUser,
 };
